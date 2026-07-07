@@ -30,6 +30,86 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/alerts">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="alert_cpu_enabled"
+            android:title="@string/alert_cpu" />
+
+        <EditTextPreference
+            android:defaultValue="90.0"
+            android:dependency="alert_cpu_enabled"
+            android:key="alert_cpu_threshold"
+            android:title="@string/alert_cpu_threshold"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="alert_ram_enabled"
+            android:title="@string/alert_ram" />
+
+        <EditTextPreference
+            android:defaultValue="256.0"
+            android:dependency="alert_ram_enabled"
+            android:key="alert_ram_threshold_mb"
+            android:title="@string/alert_ram_threshold"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="alert_temp_enabled"
+            android:title="@string/alert_temp" />
+
+        <EditTextPreference
+            android:defaultValue="80.0"
+            android:dependency="alert_temp_enabled"
+            android:key="alert_temp_threshold_c"
+            android:title="@string/alert_temp_threshold"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="alert_disk_enabled"
+            android:title="@string/alert_disk" />
+
+        <EditTextPreference
+            android:defaultValue="90.0"
+            android:dependency="alert_disk_enabled"
+            android:key="alert_disk_threshold_pct"
+            android:title="@string/alert_disk_threshold"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="alert_load_enabled"
+            android:title="@string/alert_load" />
+
+        <EditTextPreference
+            android:defaultValue="4.0"
+            android:dependency="alert_load_enabled"
+            android:key="alert_load_threshold"
+            android:title="@string/alert_load_threshold"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:defaultValue="30"
+            android:entries="@array/sustain_entries"
+            android:entryValues="@array/sustain_values"
+            android:key="alert_sustain_seconds"
+            android:title="@string/alert_sustain"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:defaultValue="5"
+            android:entries="@array/cooldown_entries"
+            android:entryValues="@array/cooldown_values"
+            android:key="alert_cooldown_minutes"
+            android:title="@string/alert_cooldown"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/appearance">
 
         <ListPreference

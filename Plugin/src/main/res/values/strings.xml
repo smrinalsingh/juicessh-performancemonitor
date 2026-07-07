@@ -30,6 +30,57 @@
     <string name="server">Server</string>
     <string name="no_detail">No data yet — connect to a server to see details.</string>
 
+    <!-- Raw output diagnostic -->
+    <string name="raw_output">Raw output</string>
+    <string name="raw_output_title">Diagnostic output</string>
+    <string name="raw_output_collecting">Collecting…</string>
+    <string name="raw_output_unavailable">No active session to collect output from.</string>
+    <string name="copy">Copy</string>
+    <string name="share">Share</string>
+    <string name="close">Close</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+
+    <!-- History detail screen -->
+    <string name="view_history">View history</string>
+    <string name="no_history_yet">No history recorded yet for this metric.</string>
+    <string name="range_15m">15m</string>
+    <string name="range_1h">1h</string>
+    <string name="range_6h">6h</string>
+    <string name="range_24h">24h</string>
+    <string name="export_csv">Export CSV</string>
+    <string name="export_csv_done">Exported %1$d rows</string>
+    <string name="export_csv_failed">Export failed</string>
+
+    <!-- Monitoring service -->
+    <string name="notification_channel_monitoring">Live monitoring</string>
+    <string name="notification_channel_monitoring_description">Ongoing status while a server is being monitored</string>
+    <string name="collecting_metrics">Collecting metrics…</string>
+    <string name="monitoring_n_servers">Monitoring %1$d servers</string>
+    <string name="disconnect_all">Disconnect all</string>
+    <string name="monitoring_ended_title">Monitoring ended</string>
+    <string name="monitoring_ended_text">The SSH session was closed.</string>
+    <string name="monitoring_ended_text_named">The SSH session to %1$s was closed.</string>
+
+    <!-- Alerts -->
+    <string name="alerts">Alerts</string>
+    <string name="alert_cpu">CPU usage alert</string>
+    <string name="alert_cpu_threshold">CPU threshold (%)</string>
+    <string name="alert_ram">Low free RAM alert</string>
+    <string name="alert_ram_threshold">Free RAM threshold (MB)</string>
+    <string name="alert_temp">Temperature alert</string>
+    <string name="alert_temp_threshold">Temperature threshold (°C)</string>
+    <string name="alert_disk">Disk usage alert</string>
+    <string name="alert_disk_threshold">Disk threshold (%)</string>
+    <string name="alert_load">Load average alert</string>
+    <string name="alert_load_threshold">Load threshold (1 min)</string>
+    <string name="alert_sustain">Alert after breached for</string>
+    <string name="alert_cooldown">Quiet time between alerts</string>
+    <string name="notification_channel_alerts">Threshold alerts</string>
+    <string name="notification_channel_alerts_description">Fired when a metric breaches its configured threshold</string>
+    <string name="alert_title">%1$s alert</string>
+    <string name="alert_text_above">%1$s is %2$s (threshold %3$s) on %4$s</string>
+    <string name="alert_text_below">%1$s is down to %2$s (threshold %3$s) on %4$s</string>
+
     <!-- Settings -->
     <string name="settings">Settings</string>
     <string name="appearance">Appearance</string>

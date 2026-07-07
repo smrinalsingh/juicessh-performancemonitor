@@ -140,12 +140,31 @@
             android:layout_height="52dp"
             android:text="@string/connect" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/disconnect_button"
+        <LinearLayout
+            android:id="@+id/connected_actions"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:text="@string/disconnect"
-            android:visibility="gone" />
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/disconnect_button"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:text="@string/disconnect"
+                android:textColor="@color/white"
+                app:backgroundTint="@color/dashboard_red" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/raw_output_button"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/raw_output" />
+        </LinearLayout>
     </FrameLayout>
 
 </LinearLayout>

@@ -29,6 +29,14 @@
             android:layout_marginTop="12dp"
             android:orientation="vertical" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/detail_view_history"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/view_history" />
+
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>
