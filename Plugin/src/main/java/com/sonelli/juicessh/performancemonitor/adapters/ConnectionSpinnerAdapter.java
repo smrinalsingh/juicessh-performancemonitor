@@ -47,6 +47,19 @@ public class ConnectionSpinnerAdapter extends CursorAdapter {
     }
 
     /**
+     * Returns the display name for the item at a given position, or null if not available
+     */
+    public String getConnectionName(int position) {
+        if (getCursor() != null && getCursor().moveToPosition(position)) {
+            int nameIndex = getCursor().getColumnIndex(PluginContract.Connections.COLUMN_NAME);
+            if (nameIndex > -1) {
+                return getCursor().getString(nameIndex);
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns the UUID connection ID for the item at a given position, or null if not available
      */
     public UUID getConnectionId(int position) {

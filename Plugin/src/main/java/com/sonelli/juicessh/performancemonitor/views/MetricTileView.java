@@ -94,6 +94,20 @@ public class MetricTileView extends MaterialCardView {
         sparklineView.setData(history.toArray());
     }
 
+    /**
+     * Replaces the history wholesale, e.g. re-seeding from the monitoring
+     * service after the Activity was recreated while polling kept running.
+     */
+    public void setHistory(float[] samples) {
+        history.clear();
+        if (samples != null) {
+            for (float sample : samples) {
+                history.add(sample);
+            }
+        }
+        sparklineView.setData(history.toArray());
+    }
+
     public void setDetailRows(List<DetailRow> rows) {
         this.detailRows = rows != null ? rows : new ArrayList<>();
     }

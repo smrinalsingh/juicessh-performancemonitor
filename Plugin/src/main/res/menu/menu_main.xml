@@ -8,6 +8,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/disconnect_all"
+        android:orderInCategory="50"
+        android:title="@string/disconnect_all"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/keep_screen_on"
         android:checkable="true"
         android:orderInCategory="100"

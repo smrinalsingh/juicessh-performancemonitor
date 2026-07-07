@@ -5,6 +5,10 @@
     <uses-permission android:name="com.sonelli.juicessh.api.v1.permission.READ_CONNECTIONS" />
     <uses-permission android:name="com.sonelli.juicessh.api.v1.permission.OPEN_SESSIONS" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
     <!-- Android 11+ (targetSdk 30+) filters package visibility. Without this the app
          cannot see JuiceSSH: its ContentProvider query returns null (empty connection
          list) and PluginClient.start()'s getPackageInfo() throws, so the client never
@@ -43,6 +47,24 @@
             android:exported="false"
             android:label="@string/settings"
             android:parentActivityName=".activities.MainActivity" />
+
+        <activity
+            android:name=".activities.MetricDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <!-- specialUse rather than dataSync: Android 15 caps dataSync services at
+             6h/day, which would silently kill long monitoring sessions. This app
+             is sideload-distributed, so the Play policy declaration for
+             specialUse does not apply; the property documents intent anyway. -->
+        <service
+            android:name=".service.MonitoringService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-initiated continuous SSH server performance monitoring" />
+        </service>
 
     </application>
 
