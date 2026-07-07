@@ -3,10 +3,12 @@ package com.sonelli.juicessh.performancemonitor.service;
 import android.Manifest;
 import android.app.Notification;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Binder;
 import android.os.Build;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -16,6 +18,7 @@ import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.preference.PreferenceManager;
 
 import com.sonelli.juicessh.performancemonitor.R;
 import com.sonelli.juicessh.performancemonitor.helpers.Format;
@@ -29,6 +32,7 @@ import com.sonelli.juicessh.pluginlibrary.exceptions.ServiceNotConnectedExceptio
 import com.sonelli.juicessh.pluginlibrary.listeners.OnClientStartedListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -73,6 +77,9 @@ public class MonitoringService extends android.app.Service implements SessionMon
     /** Minimum ms between ongoing-notification updates (system throttles ~1/s). */
     private static final long NOTIFICATION_UPDATE_FLOOR_MS = 5000;
 
+    /** Slowest cadence a hidden (non-active) server drops to, to spare battery/traffic. */
+    private static final long BACKGROUND_FLOOR_MS = 20_000;
+
     private final IBinder binder = new LocalBinder();
     private final PluginClient client = new PluginClient();
 
@@ -84,9 +91,21 @@ public class MonitoringService extends android.app.Service implements SessionMon
     /** connectionId -> its live monitor. Insertion order kept for the notification headline. */
     private final Map<String, SessionMonitor> monitors = new LinkedHashMap<>();
     private final Set<Integer> usedSlots = new HashSet<>();
-    private String activeConnectionId;
+    /** Read from the engine looper (interval provider) as well as the main thread. */
+    private volatile String activeConnectionId;
 
     private long lastNotificationUpdate = 0;
+
+    /** Shared background looper for every server's poll loop + parsing (off the UI thread). */
+    private HandlerThread pollThread;
+
+    // Preference values cached so a poll tick doesn't re-read SharedPreferences per server.
+    // Refreshed on a change listener. cachedUserIntervalMs is read from the engine looper too.
+    private volatile long cachedUserIntervalMs = 2000;
+    private List<AlertRule> cachedRules = Collections.emptyList();
+    private long cachedSustainMs;
+    private long cachedCooldownMs;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefsListener;
 
     public class LocalBinder extends Binder {
         public MonitoringService getService() {
@@ -98,6 +117,15 @@ public class MonitoringService extends android.app.Service implements SessionMon
     public void onCreate() {
         super.onCreate();
         MonitoringNotification.ensureChannels(this);
+
+        pollThread = new HandlerThread("pmon-poll");
+        pollThread.start();
+
+        refreshPrefsCache();
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        prefsListener = (prefs, key) -> refreshPrefsCache();
+        sp.registerOnSharedPreferenceChangeListener(prefsListener);
+
         client.start(this, new OnClientStartedListener() {
             @Override
             public void onClientStarted() {
@@ -143,7 +171,8 @@ public class MonitoringService extends android.app.Service implements SessionMon
 
         int slot = allocateSlot();
         SessionMonitor monitor = new SessionMonitor(
-                this, client, sessionId, sessionKey, connectionId, connectionName, slot, this);
+                this, client, sessionId, sessionKey, connectionId, connectionName, slot, this,
+                pollThread.getLooper());
         try {
             client.addSessionFinishedListener(sessionId, sessionKey, monitor);
         } catch (ServiceNotConnectedException e) {
@@ -189,14 +218,34 @@ public class MonitoringService extends android.app.Service implements SessionMon
         removeMonitor(monitor, true);
     }
 
-    private void evaluateAlerts(SessionMonitor monitor, MetricSnapshot snapshot) {
+    /**
+     * Poll cadence for a monitor: the user interval for the active/visible server,
+     * a slower floor for hidden servers. Called on the engine's background looper.
+     */
+    @Override
+    public long getPollIntervalMs(SessionMonitor monitor) {
+        long user = cachedUserIntervalMs;
+        return monitor.connectionId.equals(activeConnectionId)
+                ? user
+                : Math.max(user, BACKGROUND_FLOOR_MS);
+    }
+
+    /** Reloads the cached preference values (interval, alert rules, timings). Runs on the main thread. */
+    private void refreshPrefsCache() {
         PreferenceHelper prefs = new PreferenceHelper(this);
-        List<AlertRule> rules = prefs.getEnabledAlertRules();
+        cachedUserIntervalMs = prefs.getRefreshIntervalMs();
+        cachedRules = prefs.getEnabledAlertRules();
+        cachedSustainMs = prefs.getAlertSustainMs();
+        cachedCooldownMs = prefs.getAlertCooldownMs();
+    }
+
+    private void evaluateAlerts(SessionMonitor monitor, MetricSnapshot snapshot) {
+        List<AlertRule> rules = cachedRules;
         if (rules.isEmpty() || !canNotify()) {
             return;
         }
         List<AlertEvaluator.AlertEvent> events = monitor.getAlertEvaluator().evaluate(
-                snapshot, rules, prefs.getAlertSustainMs(), prefs.getAlertCooldownMs(),
+                snapshot, rules, cachedSustainMs, cachedCooldownMs,
                 System.currentTimeMillis());
         for (AlertEvaluator.AlertEvent event : events) {
             String metricName = getString(MetricLabels.titleRes(event.metric));
@@ -261,7 +310,7 @@ public class MonitoringService extends android.app.Service implements SessionMon
         if (monitors.isEmpty() || !canNotify()) {
             return;
         }
-        long floor = Math.max(new PreferenceHelper(this).getRefreshIntervalMs(), NOTIFICATION_UPDATE_FLOOR_MS);
+        long floor = Math.max(cachedUserIntervalMs, NOTIFICATION_UPDATE_FLOOR_MS);
         long now = System.currentTimeMillis();
         if (!force && now - lastNotificationUpdate < floor) {
             return;
@@ -333,6 +382,13 @@ public class MonitoringService extends android.app.Service implements SessionMon
         }
         monitors.clear();
         client.stop(this);
+        if (prefsListener != null) {
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .unregisterOnSharedPreferenceChangeListener(prefsListener);
+        }
+        if (pollThread != null) {
+            pollThread.quitSafely();
+        }
     }
 
     @Nullable
@@ -379,6 +435,12 @@ public class MonitoringService extends android.app.Service implements SessionMon
         lastNotificationUpdate = 0;
         publishActive();
         updateNotification(true);
+        // Tighten the now-active server back to the fast cadence and refresh it at once,
+        // instead of waiting out its slower background interval.
+        SessionMonitor active = connectionId != null ? monitors.get(connectionId) : null;
+        if (active != null) {
+            active.pollNow();
+        }
     }
 
     public boolean isConnected(String connectionId) {

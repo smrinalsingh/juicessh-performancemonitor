@@ -56,6 +56,9 @@ public class SessionMonitor implements MonitoringEngine.Listener, OnSessionFinis
         void onMonitorError(SessionMonitor monitor, String reason);
 
         void onMonitorSessionFinished(SessionMonitor monitor);
+
+        /** Poll interval for this monitor right now (fast when active, slower when hidden). */
+        long getPollIntervalMs(SessionMonitor monitor);
     }
 
     public final int sessionId;
@@ -72,6 +75,8 @@ public class SessionMonitor implements MonitoringEngine.Listener, OnSessionFinis
     private final HistoryRecorder historyRecorder;
     private final Callback callback;
     private final Handler main = new Handler(Looper.getMainLooper());
+    /** Shared background looper the poll engine runs its loop and parsing on. */
+    private final Looper engineLooper;
 
     private MonitoringEngine engine;
     private CommandProfile detectedProfile;
@@ -80,7 +85,8 @@ public class SessionMonitor implements MonitoringEngine.Listener, OnSessionFinis
     private boolean stopped;
 
     public SessionMonitor(Context context, PluginClient client, int sessionId, String sessionKey,
-                          String connectionId, String connectionName, int slot, Callback callback) {
+                          String connectionId, String connectionName, int slot, Callback callback,
+                          Looper engineLooper) {
         this.context = context.getApplicationContext();
         this.client = client;
         this.sessionId = sessionId;
@@ -89,6 +95,7 @@ public class SessionMonitor implements MonitoringEngine.Listener, OnSessionFinis
         this.connectionName = connectionName;
         this.slot = slot;
         this.callback = callback;
+        this.engineLooper = engineLooper;
         this.historyRecorder = new HistoryRecorder(context, connectionId);
         for (MetricType type : MetricType.values()) {
             histories.put(type, new MetricHistory(HISTORY_CAPACITY));
@@ -130,8 +137,16 @@ public class SessionMonitor implements MonitoringEngine.Listener, OnSessionFinis
             return; // disconnected during OS detection
         }
         detectedProfile = profile;
-        engine = new MonitoringEngine(context, client, sessionId, sessionKey, connectionId, profile, this);
+        engine = new MonitoringEngine(context, client, sessionId, sessionKey, connectionId, profile, this,
+                engineLooper, () -> callback.getPollIntervalMs(this));
         engine.start();
+    }
+
+    /** Forces an immediate poll (used when this monitor becomes the active/visible one). */
+    public void pollNow() {
+        if (engine != null) {
+            engine.pollNow();
+        }
     }
 
     /**

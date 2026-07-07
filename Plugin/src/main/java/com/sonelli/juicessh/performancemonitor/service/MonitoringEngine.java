@@ -26,10 +26,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * {@code ###PMON:} markers) instead of six separate SSH executions, parses each
  * section, and emits a {@link MetricSnapshot} sharing a single timestamp.
  *
- * <p>Runs on the main looper like the old per-metric controllers. An in-flight
- * guard stops a slow tick from stacking executions; a watchdog abandons a tick
- * that never completes (e.g. {@code df} hung on a stale NFS mount — which is why
- * df is ordered last) after 3× the poll interval.
+ * <p>The poll loop and the parse run on the shared background looper supplied at
+ * construction (never the main thread), so N connected servers no longer parse N
+ * SSH transcripts on the UI thread every interval. Only {@link Listener}
+ * delivery is marshalled back to the main thread. An in-flight guard stops a slow
+ * tick from stacking executions; a watchdog abandons a tick that never completes
+ * (e.g. {@code df} hung on a stale NFS mount — which is why df is ordered last)
+ * after 3× the poll interval.
  */
 public class MonitoringEngine {
 
@@ -46,6 +49,11 @@ public class MonitoringEngine {
         void onEngineError(String reason);
     }
 
+    /** Supplies the current poll interval for this engine (active vs. background cadence). */
+    public interface IntervalProvider {
+        long getIntervalMs();
+    }
+
     private final Context context;
     private final PluginClient client;
     private final int sessionId;
@@ -53,18 +61,23 @@ public class MonitoringEngine {
     private final String connectionId;
     private final CommandProfile profile;
     private final Listener listener;
+    private final IntervalProvider intervalProvider;
 
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    /** Poll loop + parse run here (shared background looper). */
+    private final Handler handler;
+    /** Listener callbacks are delivered here so shared state stays main-thread-only. */
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    // Tick bookkeeping (main thread only). The generation counter invalidates
+    // Tick bookkeeping (engine looper only). The generation counter invalidates
     // callbacks from a tick that was abandoned by the watchdog or by stop().
     private int generation = 0;
     private boolean inFlight = false;
     private long tickStartMs = 0;
 
     public MonitoringEngine(Context context, PluginClient client, int sessionId, String sessionKey,
-                            String connectionId, CommandProfile profile, Listener listener) {
+                            String connectionId, CommandProfile profile, Listener listener,
+                            Looper engineLooper, IntervalProvider intervalProvider) {
         this.context = context.getApplicationContext();
         this.client = client;
         this.sessionId = sessionId;
@@ -72,6 +85,8 @@ public class MonitoringEngine {
         this.connectionId = connectionId;
         this.profile = profile;
         this.listener = listener;
+        this.handler = new Handler(engineLooper);
+        this.intervalProvider = intervalProvider;
     }
 
     public String getConnectionId() {
@@ -125,7 +140,7 @@ public class MonitoringEngine {
                             inFlight = false;
                         }
                         if (running.get()) {
-                            listener.onEngineError(reason);
+                            deliver(() -> listener.onEngineError(reason));
                         }
                     });
                 }
@@ -144,6 +159,15 @@ public class MonitoringEngine {
         }
     }
 
+    /** Delivers a listener callback on the main thread, dropping it if the engine has stopped. */
+    private void deliver(Runnable r) {
+        mainHandler.post(() -> {
+            if (running.get()) {
+                r.run();
+            }
+        });
+    }
+
     private void completeTick(int gen, List<String> lines) {
         if (!running.get() || gen != generation) {
             return; // stopped, or abandoned by the watchdog
@@ -154,12 +178,13 @@ public class MonitoringEngine {
         long now = System.currentTimeMillis();
         EnumMap<MetricType, MetricReading> readings =
                 profile.parse(sections, now, new PreferenceHelper(context));
-        listener.onSnapshot(new MetricSnapshot(now, connectionId, readings));
+        final MetricSnapshot snapshot = new MetricSnapshot(now, connectionId, readings);
+        deliver(() -> listener.onSnapshot(snapshot));
     }
 
-    /** Current polling interval, read fresh each tick so Settings changes apply live. */
+    /** Current polling interval; the provider decides active vs. background cadence. */
     protected long getIntervalMs() {
-        return new PreferenceHelper(context).getRefreshIntervalMs();
+        return intervalProvider.getIntervalMs();
     }
 
     public MonitoringEngine start() {
@@ -168,6 +193,19 @@ public class MonitoringEngine {
         }
         handler.post(pollRunnable);
         return this;
+    }
+
+    /**
+     * Runs a tick immediately, resetting the interval clock. Called when a throttled
+     * (background-cadence) server becomes active so it refreshes at once instead of
+     * waiting out the slower background interval.
+     */
+    public void pollNow() {
+        if (!running.get()) {
+            return;
+        }
+        handler.removeCallbacks(pollRunnable);
+        handler.post(pollRunnable);
     }
 
     public void stop() {
