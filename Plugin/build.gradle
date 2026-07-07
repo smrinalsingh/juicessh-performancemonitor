@@ -1,82 +1,55 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.2'
-    }
-}
-
 apply plugin: 'com.android.application'
 
-    repositories {
-        mavenCentral()
-        maven { url 'https://raw.github.com/Sonelli/maven/master' }
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
-    }
-
-dependencies {
-    implementation 'com.android.support:appcompat-v7:24.0.0'
-    implementation 'com.android.support:cardview-v7:24.0.0'
-    implementation 'com.android.support:appcompat-v7:24.0.0'
-    implementation 'com.sonelli:juicessh-pluginlibrary:1.0.13@aar'
-}
-
-
 android {
-
-    lintOptions {
-        checkReleaseBuilds false
-        // Or, if you prefer, you can continue to check for errors in release builds,
-        // but continue the build even when errors are found:
-        abortOnError false
-    }
-
-    signingConfigs {
-    }
-    compileSdkVersion 24
-    buildToolsVersion '28.0.3'
+    namespace 'com.sonelli.juicessh.performancemonitor'
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.sonelli.juicessh.performancemonitor"
-        minSdkVersion 21
-        targetSdkVersion 24
-        versionCode 10
-        versionName "1.1.0"
+        minSdk 24
+        targetSdk 35
+        versionCode 11
+        versionName "2.0.0"
     }
 
-
-    final Console console = System.console();
-    if (console != null) {
-        // Building from CLI: Prompt for keystore details
-        signingConfigs {
-            release {
-                storeFile file(console.readLine("Enter keystore path: "))
-                storePassword console.readLine("Enter keystore password: ")
-                keyAlias console.readLine("Enter alias key: ")
-                keyPassword console.readLine("Enter key password: ")
-            }
-        }
-    } else {
-        // Building from IDE: Don't use a signing config
-        signingConfigs {
-            release {}
-        }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     buildTypes {
         release {
-            minifyEnabled true
-            debuggable false
-            signingConfig signingConfigs.release
+            // Keep R8 off: the JuiceSSH plugin library relies on AIDL/reflection and
+            // this APK is distributed by sideloading, so shrinking buys us little and
+            // risks stripping plugin-service classes.
+            minifyEnabled false
+            // Sign release with the debug key so `assembleRelease` also produces an
+            // installable APK for sideloading. Replace with a real keystore for Play.
+            signingConfig signingConfigs.debug
         }
     }
 
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+repositories {
+    // Consume the vendored JuiceSSH plugin SDK from Plugin/libs/ so the build never
+    // depends on a third-party host (its original jcenter/GitHub maven repo is gone).
+    flatDir { dirs "$projectDir/libs" }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.preference:preference:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.loader:loader:1.1.0'
+    implementation 'androidx.cursoradapter:cursoradapter:1.0.0'
+
+    // JuiceSSH Plugin SDK (AIDL/IPC client). Vendored AAR; Jetifier rewrites its
+    // android.support.v4 references to AndroidX at build time.
+    implementation(name: 'juicessh-pluginlibrary-1.0.13', ext: 'aar')
 }

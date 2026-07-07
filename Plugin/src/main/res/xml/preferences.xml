@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="@string/display">
+
+        <ListPreference
+            android:defaultValue="2"
+            android:entries="@array/interval_entries"
+            android:entryValues="@array/interval_values"
+            android:key="refresh_interval_seconds"
+            android:title="@string/refresh_interval"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:defaultValue="c"
+            android:entries="@array/temp_entries"
+            android:entryValues="@array/temp_values"
+            android:key="temperature_unit"
+            android:title="@string/temperature_unit"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:defaultValue="bytes"
+            android:entries="@array/network_entries"
+            android:entryValues="@array/network_values"
+            android:key="network_unit"
+            android:title="@string/network_unit"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/appearance">
+
+        <ListPreference
+            android:defaultValue="system"
+            android:entries="@array/theme_entries"
+            android:entryValues="@array/theme_values"
+            android:key="theme_mode"
+            android:title="@string/theme"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="keep_screen_on_key"
+            android:title="@string/keep_screen_on" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

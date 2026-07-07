@@ -1,56 +1,54 @@
 package com.sonelli.juicessh.performancemonitor.controllers;
 
 import android.content.Context;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sonelli.juicessh.performancemonitor.helpers.PreferenceHelper;
+import com.sonelli.juicessh.performancemonitor.model.DetailRow;
+import com.sonelli.juicessh.performancemonitor.views.MetricTileView;
 import com.sonelli.juicessh.pluginlibrary.PluginClient;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class BaseController {
 
-    public static final int INTERVAL_SECONDS = 2;
-
     private int sessionId;
     private String sessionKey;
     private PluginClient client;
-    private TextView textView;
-    private WeakReference<Context> context;
+    private MetricTileView tile;
+    private final WeakReference<Context> context;
 
-    private AtomicBoolean isRunning = new AtomicBoolean(false);
+    private final AtomicBoolean isRunning = new AtomicBoolean(false);
 
     public BaseController(Context context) {
         this.context = new WeakReference<>(context);
     }
 
-    public BaseController setSessionId(int sessionId){
+    public BaseController setSessionId(int sessionId) {
         this.sessionId = sessionId;
         return this;
     }
 
-    public BaseController setSessionKey(String sessionKey){
+    public BaseController setSessionKey(String sessionKey) {
         this.sessionKey = sessionKey;
         return this;
     }
 
-    public BaseController setPluginClient(PluginClient client){
+    public BaseController setPluginClient(PluginClient client) {
         this.client = client;
         return this;
     }
 
-    public BaseController setTextview(TextView textView){
-        this.textView = textView;
+    public BaseController setTile(MetricTileView tile) {
+        this.tile = tile;
         return this;
     }
 
-    public String getString(int resource){
-        if(context.get() != null){
-            return context.get().getString(resource);
-        } else {
-            return null;
-        }
+    public String getString(int resource) {
+        Context c = context.get();
+        return c != null ? c.getString(resource) : null;
     }
 
     public int getSessionId() {
@@ -65,13 +63,41 @@ public abstract class BaseController {
         return client;
     }
 
-    public void setText(String string){
-        if(textView != null && !textView.getText().equals(string)){
-            textView.setText(string);
+    /** Current polling interval, read fresh each tick so Settings changes apply live. */
+    protected long getIntervalMs() {
+        Context c = context.get();
+        return c != null ? new PreferenceHelper(c).getRefreshIntervalMs() : 2000L;
+    }
+
+    protected PreferenceHelper getPreferences() {
+        Context c = context.get();
+        return c != null ? new PreferenceHelper(c) : null;
+    }
+
+    /** Set the headline text only (errors / non-numeric states, no sparkline sample). */
+    public void setText(String string) {
+        // Ignore late callbacks that arrive after the controller was stopped so a
+        // disconnected tile can't be overwritten with stale data.
+        if (isRunning() && tile != null) {
+            tile.setValue(string);
         }
     }
 
-    public boolean isRunning(){
+    /** Publish a numeric reading: update the headline and append to the sparkline history. */
+    public void publish(double value, String display) {
+        if (isRunning() && tile != null) {
+            tile.setValue(display);
+            tile.pushSample((float) value);
+        }
+    }
+
+    protected void setDetailRows(List<DetailRow> rows) {
+        if (tile != null) {
+            tile.setDetailRows(rows);
+        }
+    }
+
+    public boolean isRunning() {
         return isRunning.get();
     }
 
@@ -80,14 +106,17 @@ public abstract class BaseController {
         return this;
     }
 
-    public void stop(){
+    public void stop() {
         isRunning.set(false);
     }
 
     public void toast(String reason) {
-        if(context.get() != null){
-            Toast.makeText(context.get(), reason, Toast.LENGTH_SHORT).show();
+        if (!isRunning()) {
+            return; // suppress a stray error toast from a poll that raced past disconnect
+        }
+        Context c = context.get();
+        if (c != null) {
+            Toast.makeText(c, reason, Toast.LENGTH_SHORT).show();
         }
     }
-
 }

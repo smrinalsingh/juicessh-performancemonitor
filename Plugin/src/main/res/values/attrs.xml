@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MetricTileView">
+        <attr name="tileTitle" format="string" />
+        <attr name="tileIcon" format="reference" />
+        <attr name="tileAccent" format="color" />
+    </declare-styleable>
+</resources>

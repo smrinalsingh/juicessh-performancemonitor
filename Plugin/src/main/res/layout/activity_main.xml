@@ -1,350 +1,151 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.MainActivity" >
+    android:background="?attr/colorSurface"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="@string/app_name" />
 
     <LinearLayout
-        android:layout_alignParentTop="true"
-        android:background="@android:color/white"
-        android:paddingBottom="58dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="4dp">
 
-        <LinearLayout
-            android:baselineAligned="false"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:text="@string/server"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
-            <LinearLayout
-                android:clickable="true"
-                android:elevation="3dp"
-                android:layout_margin="8dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:background="@drawable/ripple_cpu_usage">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.5"
-                    android:gravity="bottom|center_horizontal"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/cpu"/>
-                    <TextView
-                        android:layout_marginStart="7dp"
-                        android:textStyle="bold"
-                        android:layout_width="wrap_content"
-                        android:textSize="22sp"
-                        android:fontFamily="sans-serif"
-                        android:textColor="@android:color/white"
-                        android:layout_height="wrap_content"
-                        android:text="@string/cpu_usage" />
-                    </LinearLayout>
-                <com.sonelli.juicessh.performancemonitor.views.AutoResizeTextView
-                    android:id="@+id/cpu_usage"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.75"
-                    android:layout_width="match_parent"
-                    android:fontFamily="sans-serif"
-                    android:textSize="36sp"
-                    android:textColor="@android:color/white"
-                    android:text="-"
-                    android:gravity="center_horizontal|top" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:clickable="true"
-                android:elevation="3dp"
-                android:layout_marginStart="0dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:gravity="center"
-                android:background="@drawable/ripple_free_memory"
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.5"
-                    android:gravity="bottom|center_horizontal"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/ram" />
-                    <TextView
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="7dp"
-                        android:textStyle="bold"
-                        android:layout_width="wrap_content"
-                        android:textSize="22sp"
-                        android:fontFamily="sans-serif"
-                        android:textColor="@android:color/white"
-                        android:text="@string/free_memory" />
-                    </LinearLayout>
-                <com.sonelli.juicessh.performancemonitor.views.AutoResizeTextView
-                    android:layout_height="0dp"
-                    android:layout_weight="0.75"
-                    android:id="@+id/free_memory"
-                    android:fontFamily="sans-serif"
-                    android:layout_width="match_parent"
-                    android:textSize="36sp"
-                    android:textColor="@android:color/white"
-                    android:text="-"
-                    android:gravity="center_horizontal|top" />
-
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:baselineAligned="false"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="8dp"
-                android:layout_marginBottom="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/ripple_temperature"
-                android:clickable="true"
-                android:elevation="3dp"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.5"
-                    android:gravity="bottom|center_horizontal"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/thermometer_lines" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="7dp"
-                        android:fontFamily="sans-serif"
-                        android:text="@string/temperature"
-                        android:textColor="@android:color/white"
-                        android:textSize="22sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <com.sonelli.juicessh.performancemonitor.views.AutoResizeTextView
-                    android:id="@+id/temperature"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.75"
-                    android:fontFamily="sans-serif"
-                    android:gravity="center_horizontal|top"
-                    android:text="-"
-                    android:textColor="@android:color/white"
-                    android:textSize="36sp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:clickable="true"
-                android:elevation="3dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginBottom="8dp"
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:background="@drawable/ripple_load_average"
-                android:gravity="center" >
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.5"
-                    android:gravity="bottom|center_horizontal"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/load" />
-                    <TextView
-                        android:layout_marginStart="7dp"
-                        android:textStyle="bold"
-                        android:layout_width="wrap_content"
-                        android:textSize="22sp"
-                        android:fontFamily="sans-serif"
-                        android:textColor="@android:color/white"
-                        android:layout_height="wrap_content"
-                        android:text="@string/load_average" />
-                </LinearLayout>
-
-                <com.sonelli.juicessh.performancemonitor.views.AutoResizeTextView
-                    android:layout_height="0dp"
-                    android:layout_weight="0.75"
-                    android:id="@+id/load_average"
-                    android:fontFamily="sans-serif"
-                    android:lines="1"
-                    android:layout_width="match_parent"
-                    android:textSize="55sp"
-                    android:textColor="@android:color/white"
-                    android:text="-"
-                    android:gravity="center_horizontal|top" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:clickable="true"
-                android:elevation="3dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginBottom="8dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:background="@drawable/ripple_network_usage">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.5"
-                    android:gravity="bottom|center_horizontal"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/network" />
-                    <TextView
-                        android:layout_marginStart="7dp"
-                        android:textStyle="bold"
-                        android:layout_width="wrap_content"
-                        android:textSize="22sp"
-                        android:fontFamily="sans-serif"
-                        android:textColor="@android:color/white"
-                        android:layout_height="wrap_content"
-                        android:text="@string/network" />
-
-                    </LinearLayout>
-                <com.sonelli.juicessh.performancemonitor.views.AutoResizeTextView
-                    android:layout_height="0dp"
-                    android:layout_weight="0.75"
-                    android:id="@+id/network_usage"
-                    android:fontFamily="sans-serif"
-                    android:layout_width="match_parent"
-                    android:textSize="36sp"
-                    android:textColor="@android:color/white"
-                    android:text="-"
-                    android:gravity="center_horizontal|top" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:clickable="true"
-                android:elevation="3dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginBottom="8dp"
-                android:gravity="center"
-                android:background="@drawable/ripple_disk_usage"
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.5"
-                    android:gravity="bottom|center_horizontal"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/disk" />
-                    <TextView
-                        android:layout_marginStart="7dp"
-                        android:textStyle="bold"
-                        android:layout_width="wrap_content"
-                        android:textSize="22sp"
-                        android:fontFamily="sans-serif"
-                        android:textColor="@android:color/white"
-                        android:layout_height="wrap_content"
-                        android:text="@string/disk" />
-
-                    </LinearLayout>
-                <com.sonelli.juicessh.performancemonitor.views.AutoResizeTextView
-                    android:layout_height="0dp"
-                    android:layout_weight="0.75"
-                    android:id="@+id/disk_usage"
-                    android:fontFamily="sans-serif"
-                    android:layout_width="match_parent"
-                    android:textSize="36sp"
-                    android:textColor="@android:color/white"
-                    android:text="-"
-                    android:gravity="center_horizontal|top" />
-
-            </LinearLayout>
-        </LinearLayout>
-
+        <Spinner
+            android:id="@+id/connection_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
     </LinearLayout>
 
-
-    <Button
-        android:backgroundTint="@color/dashboard_dark_orange"
-        android:layout_margin="4dp"
-        android:id="@+id/connect_button"
+    <LinearLayout
+        android:id="@+id/dashboard"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:textSize="18sp"
-        android:textColor="@color/white"
-        android:textStyle="bold"
-        android:foregroundGravity="center_horizontal"
-        android:text="@string/connect" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="4dp">
 
-    <Button
-        android:backgroundTint="@color/dashboard_dark_orange"
-        android:layout_margin="4dp"
-        android:visibility="gone"
-        android:id="@+id/disconnect_button"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <com.sonelli.juicessh.performancemonitor.views.MetricTileView
+                android:id="@+id/cpu_tile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="6dp"
+                android:layout_weight="1"
+                app:tileAccent="@color/metric_cpu"
+                app:tileIcon="@drawable/cpu"
+                app:tileTitle="@string/cpu_usage" />
+
+            <com.sonelli.juicessh.performancemonitor.views.MetricTileView
+                android:id="@+id/ram_tile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="6dp"
+                android:layout_weight="1"
+                app:tileAccent="@color/metric_ram"
+                app:tileIcon="@drawable/ram"
+                app:tileTitle="@string/free_memory" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <com.sonelli.juicessh.performancemonitor.views.MetricTileView
+                android:id="@+id/temp_tile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="6dp"
+                android:layout_weight="1"
+                app:tileAccent="@color/metric_temp"
+                app:tileIcon="@drawable/thermometer_lines"
+                app:tileTitle="@string/temperature" />
+
+            <com.sonelli.juicessh.performancemonitor.views.MetricTileView
+                android:id="@+id/load_tile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="6dp"
+                android:layout_weight="1"
+                app:tileAccent="@color/metric_load"
+                app:tileIcon="@drawable/load"
+                app:tileTitle="@string/load_average" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <com.sonelli.juicessh.performancemonitor.views.MetricTileView
+                android:id="@+id/network_tile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="6dp"
+                android:layout_weight="1"
+                app:tileAccent="@color/metric_network"
+                app:tileIcon="@drawable/network"
+                app:tileTitle="@string/network" />
+
+            <com.sonelli.juicessh.performancemonitor.views.MetricTileView
+                android:id="@+id/disk_tile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="6dp"
+                android:layout_weight="1"
+                app:tileAccent="@color/metric_disk"
+                app:tileIcon="@drawable/disk"
+                app:tileTitle="@string/disk" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:textSize="18sp"
-        android:textColor="@color/white"
-        android:textStyle="bold"
-        android:foregroundGravity="center_horizontal"
-        android:text="@string/disconnect" />
+        android:layout_height="wrap_content"
+        android:padding="12dp">
 
-</RelativeLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/connect_button"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/connect" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/disconnect_button"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/disconnect"
+            android:visibility="gone" />
+    </FrameLayout>
+
+</LinearLayout>

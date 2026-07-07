@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Original palette (kept for the ripple/shape drawables that still reference it) -->
     <color name="dashboard_red">#ce432c</color>
     <color name="dashboard_green">#FF37BAB3</color>
     <color name="dashboard_blue">#FF04B1C5</color>
@@ -11,4 +12,15 @@
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="trans_white">#88FFFFFF</color>
+
+    <color name="brand_primary">#04B1C5</color>
+
+    <!-- Per-metric accent colours. Deep enough that the hardcoded white tile text/icon
+         clears WCAG AA (>=4.5:1) in both light and dark themes. -->
+    <color name="metric_cpu">#0A7C8A</color>
+    <color name="metric_ram">#1B7E77</color>
+    <color name="metric_temp">#C0431F</color>
+    <color name="metric_load">#A05E0F</color>
+    <color name="metric_network">#7E2E5C</color>
+    <color name="metric_disk">#2E51A6</color>
 </resources>

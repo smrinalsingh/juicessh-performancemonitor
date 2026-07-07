@@ -2,15 +2,23 @@ package com.sonelli.juicessh.performancemonitor.controllers;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.sonelli.juicessh.performancemonitor.R;
+import com.sonelli.juicessh.performancemonitor.model.DetailRow;
 import com.sonelli.juicessh.pluginlibrary.exceptions.ServiceNotConnectedException;
 import com.sonelli.juicessh.pluginlibrary.listeners.OnSessionExecuteListener;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
+/**
+ * Reads {@code /proc/loadavg} (more portable than parsing {@code uptime}) and
+ * reports the 1-minute load average as the headline, with 1/5/15-minute averages
+ * and running/total process counts in the detail sheet.
+ */
 public class LoadAverageController extends BaseController {
 
     public static final String TAG = "LoadAverageController";
@@ -23,35 +31,41 @@ public class LoadAverageController extends BaseController {
     public BaseController start() {
         super.start();
 
-        // Execute the 'uptime' command on the server every second and parse out the load average
-        // with a regular expression. Then update the big load average TextView.
-        // Wrap the load average with *'s on every other update so that you can easily see
-        // when it updates if the load average doesn't change much.
-
-        final Pattern loadAvgPattern = Pattern.compile("average[s]?:\\s*([0-9.]+)"); // Heavy cpu so do out of loops.
-
-        final Handler handler = new Handler();
+        final Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {
 
                 try {
+                    getPluginClient().executeCommandOnSession(getSessionId(), getSessionKey(), "cat /proc/loadavg", new OnSessionExecuteListener() {
 
-                    getPluginClient().executeCommandOnSession(getSessionId(), getSessionKey(), "uptime", new OnSessionExecuteListener() {
                         @Override
                         public void onCompleted(int exitCode) {
-                            switch(exitCode){
-                                case 127:
-                                    setText(getString(R.string.error));
-                                    Log.d(TAG, "Tried to run a command but the command was not found on the server");
-                                    break;
+                            if (exitCode == 127) {
+                                setText(getString(R.string.error));
+                                Log.d(TAG, "cat /proc/loadavg not available on server");
                             }
                         }
+
                         @Override
                         public void onOutputLine(String line) {
-                            Matcher loadAvgMatcher = loadAvgPattern.matcher(line);
-                            if(loadAvgMatcher.find()){
-                                setText(loadAvgMatcher.group(1));
+                            String[] t = line.trim().split("\\s+");
+                            if (t.length < 3) {
+                                return;
+                            }
+                            try {
+                                double load1 = Double.parseDouble(t[0]);
+                                publish(load1, String.format(Locale.US, "%.2f", load1));
+
+                                List<DetailRow> rows = new ArrayList<>();
+                                rows.add(new DetailRow("1 min", t[0]));
+                                rows.add(new DetailRow("5 min", t[1]));
+                                rows.add(new DetailRow("15 min", t[2]));
+                                if (t.length >= 4 && t[3].contains("/")) {
+                                    rows.add(new DetailRow("Processes (running/total)", t[3]));
+                                }
+                                setDetailRows(rows);
+                            } catch (NumberFormatException ignored) {
                             }
                         }
 
@@ -60,20 +74,16 @@ public class LoadAverageController extends BaseController {
                             toast(reason);
                         }
                     });
-                } catch (ServiceNotConnectedException e){
-                    Log.d(TAG, "Tried to execute a command but could not connect to JuiceSSH plugin service");
+                } catch (ServiceNotConnectedException e) {
+                    Log.d(TAG, "Could not connect to JuiceSSH plugin service");
                 }
 
-                if(isRunning()){
-                    handler.postDelayed(this, INTERVAL_SECONDS * 1000L);
+                if (isRunning()) {
+                    handler.postDelayed(this, getIntervalMs());
                 }
             }
-
-
         });
 
         return this;
-
     }
-
 }
